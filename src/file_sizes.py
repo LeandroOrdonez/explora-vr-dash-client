@@ -37,7 +37,8 @@ def read(DATA_DIR, v_id, t_hor, t_vert, n_qual, n_seg):
     for q in range(1, n_qual + 1):
         s = 1
         t = 2
-        with open("%s/size_%i.dat" % (directory, q), 'r') as f:
+        q_idx = int(1.5*q**2 - 0.5*q)
+        with open("%s/size_%i.dat" % (directory, q_idx), 'r') as f:
             for line in f:
                 file_sizes[s][t][q] = int(line.split('\t')[0]) * 8
                 t += 1
@@ -46,5 +47,4 @@ def read(DATA_DIR, v_id, t_hor, t_vert, n_qual, n_seg):
                     s += 1
                     if s > n_seg:
                         break
-
     return file_sizes

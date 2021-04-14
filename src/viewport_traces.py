@@ -1,5 +1,6 @@
 import help_functions as hf
-
+import pandas as pd
+import numpy as np
 
 def read_trace(DATA_DIR, u_id, v_id):
     """Reads the viewport locations for a given user and video
@@ -16,35 +17,6 @@ def read_trace(DATA_DIR, u_id, v_id):
     list
         A list of tuples, containing a timestamp, phi and theta
     """
-
-    trace = []
-    reset = skipped = False
-
-    with open("%s/traces/%i/video_%i.csv" % (DATA_DIR, u_id, v_id), 'r') as f:
-        for line in f:
-            # Skip first line
-            if not skipped:
-                skipped = True
-                continue
-
-            l = line.strip().split(',')
-            time = float(l[1])
-
-            # Remove first few samples if needed
-            if trace and time + 1 < trace[-1][0] and not reset:
-                trace = []
-                reset = True
-
-            # Avoid double entries
-            if trace and time == trace[-1][0]:
-                continue
-
-            # Convert coordinates
-            qx, qy, qz, qw = [float(l[i]) for i in range(2, 6)]
-            x, y, z = hf.quat_to_cart(qx, qy, qz, qw)
-            phi, theta = hf.cart_to_spher(x, y, z)
-
-            # Append to list
-            trace.append((time, phi, theta))
-
-    return trace
+    trace_df = pd.read_csv(f"{DATA_DIR}/traces/{u_id}/video_{v_id}.csv").drop_duplicates(subset=['PlaybackTime']).sort_values(by='PlaybackTime')
+    trace_df['phi'], trace_df['theta'] = zip(*trace_df.apply(lambda r: hf.cart_to_spher(*hf.quat_to_cart(r['UnitQuaternion.x'], r['UnitQuaternion.y'], r['UnitQuaternion.z'], r['UnitQuaternion.w'])), axis=1))
+    return trace_df[['PlaybackTime', 'phi', 'theta']].to_numpy()

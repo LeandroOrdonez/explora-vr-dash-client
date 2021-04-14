@@ -19,7 +19,7 @@ class Player(object):
         Run the VR player
     """
 
-    def __init__(self, host, port, buffer_size, seg_dur, v_id, n_seg, t_hor,
+    def __init__(self, host, port, query_string, buffer_size, seg_dur, v_id, n_seg, t_hor,
                  t_vert, file_sizes, rate_adapter, reassignment, predict,
                  n_conn, trace):
         """
@@ -29,6 +29,8 @@ class Player(object):
             IP address
         port : int
             Port number
+        query_string : string
+            query parameters to append to each request
         buffer_size : float
             Buffer size [s]
         seg_dur : float
@@ -55,6 +57,7 @@ class Player(object):
 
         self.host = host
         self.port = port
+        self.query_string = query_string
         self.buffer_size = buffer_size
         self.seg_dur = seg_dur
         self.v_id = v_id
@@ -76,6 +79,8 @@ class Player(object):
 
         self.freeze_freq = 0
         self.freeze_dur = 0
+        self.download_times = []
+        self.quality_log = []
 
     def _play(self):
         """Simulates playout of video content
@@ -238,12 +243,14 @@ class Player(object):
                 f = "1/seg_dash_track%i_init.mp4" % (-t_id)
         # If not, regular video content is requested
         else:
+            q_idx = int(1.5*quality**2 - 0.5*quality)
             # Non-tiled video
             if self.t_hor == self.t_vert == 1:
-                f = "%i/seg_dash%i.m4s" % (quality, s_id)
+                f = "%i/seg_dash%i.m4s" % (q_idx, s_id)
             # Tiled video
             else:
-                f = "%i/seg_dash_track%i_%i.m4s" % (quality, t_id, s_id)
+                
+                f = "%i/seg_dash_track%i_%i.m4s?%s" % (q_idx, t_id - 1, s_id, self.query_string)
 
         return "%s/%s/%s" % (h, d, f)
 
@@ -271,12 +278,12 @@ class Player(object):
             self.qualities = [0] * n_tiles
 
             # If this is the first segment, send requests to download queue
-            if s_id == 1:
-                if self.t_hor == self.t_vert == 1:
-                    self.download_queue.put((0, 1, -1, 0))
-                else:
-                    for t_id in range(1, n_tiles + 2):
-                        self.download_queue.put((0, 1, -t_id, 0))
+            # if s_id == 1:
+            #     if self.t_hor == self.t_vert == 1:
+            #         self.download_queue.put((0, 1, -1, 0))
+            #     else:
+            #         for t_id in range(1, n_tiles + 2):
+            #             self.download_queue.put((0, 1, -t_id, 0))
 
             # Set time since last update
             time_last_update = time.time()
@@ -313,8 +320,8 @@ class Player(object):
             time_start = time.time()
 
             # Send required resources to download queue
-            if self.t_hor > 1 or self.t_vert > 1:
-                self.download_queue.put((1, s_id, 1, 1))
+            # if self.t_hor > 1 or self.t_vert > 1:
+            #     self.download_queue.put((1, s_id, 1, 1))
             d = 2
             for t_id in order[::-1]:
                 quality = qualities[t_id - 2]
@@ -362,6 +369,7 @@ class Player(object):
             self.download_queue.join()
 
             print(self.qualities)
+            self.quality_log.append(self.qualities)
 
             # Total download time
             time_passed = time.time() - time_start
@@ -373,6 +381,7 @@ class Player(object):
                 bits += self.file_sizes[s_id][t_id][quality]
             bandwidth = bits / time_passed
             print(bandwidth / 1000000, time_passed)
+            self.download_times.append(time_passed)
 
             # Push segment to playout queue
             self.seg_queue.put(self.qualities[:])
