@@ -5,7 +5,7 @@ then
     LATENCY=$(( 2*LATENCY ))
     SIP=$(getent hosts ${SERVER_HOST} | cut -d' ' -f1)
     echo "src/traffic-control.sh -o --delay=${LATENCY} --jitter=${JITTER} --uspeed=${BANDWIDTH} --dspeed=${BANDWIDTH} ${SIP}"
-    sudo src/traffic-control.sh -o --delay=${LATENCY} --jitter=${JITTER} --uspeed=${BANDWIDTH} ${SIP}
+    sudo src/traffic-control.sh -o --delay=${LATENCY} --jitter=${JITTER} --uspeed=${BANDWIDTH} --dspeed=${BANDWIDTH} ${SIP}
 fi
 
 for u in 25 27 28 38 41 44

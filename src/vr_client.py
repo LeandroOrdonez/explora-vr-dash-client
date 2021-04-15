@@ -49,7 +49,7 @@ query_string = f'k={K}&fold={FOLD}&prefetch={args["prefetch"]}&perfect_predictio
 
 
 # Configurations
-rah = 3                 # 0: UVP, 1: UVQ, 2: CTF, 3: Petrangeli, 4: Hosseini
+rah = 2                 # 0: UVP, 1: UVQ, 2: CTF, 3: Petrangeli, 4: Hosseini
 reorder = 0             # 0: no reassignment, 1: reassignment
 predict = 1             # 0: last known, 1: spherical walk, 2: perfect
 n_conn = 1              # Number of parallel TCP connections

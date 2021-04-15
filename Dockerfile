@@ -6,7 +6,7 @@ ENV KAFKA_BROKERS="localhost"
 ENV KAFKA_TOPIC="vp_traces"
 ENV CACHE_HOST="localhost"
 ENV CACHE_PORT=88
-ENV ENABLE_TC="true"
+ENV ENABLE_TC="false"
 ENV BANDWIDTH="12Mbps"
 ENV LATENCY=15
 ENV JITTER=2
@@ -14,7 +14,7 @@ ENV GRANT_SUDO="yes"
 
 USER root
 
-RUN apt-get update && apt-get install -y gcc g++ openssh-server htop build-essential python-dev python3-dev iproute2 inetutils-ping kmod
+RUN apt-get update && apt-get install -y gcc g++ openssh-server htop build-essential python-dev python3-dev iproute2 inetutils-ping kmod iperf3 bmon
 
 USER $NB_UID
 
