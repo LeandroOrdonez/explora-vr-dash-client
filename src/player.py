@@ -202,14 +202,14 @@ class Player(object):
                 self.qualities[t_id - 2] = quality
 
             # Generate URL and send the request
-            url = self._generate_url(s_id, t_id, quality)
+            url = self._generate_url(s_id, t_id, quality, tup[0] == 2) # tup[0] == 2 corresponds to the center tile
             print(url)
             (resp_headers, content) = h.request(url, "GET")
 
             # End task
             self.download_queue.task_done()
 
-    def _generate_url(self, s_id, t_id, quality):
+    def _generate_url(self, s_id, t_id, quality, ct=False):
         """Generates URL based on segment number, tile number and quality
 
         Parameters
@@ -250,7 +250,7 @@ class Player(object):
             # Tiled video
             else:
                 
-                f = "%i/seg_dash_track%i_%i.m4s?%s" % (q_idx, t_id - 1, s_id, self.query_string)
+                f = "%i/seg_dash_track%i_%i.m4s?%s" % (q_idx, t_id - 1, s_id, self.query_string if not ct else f'{self.query_string}&ct=True')
 
         return "%s/%s/%s" % (h, d, f)
 
@@ -323,7 +323,7 @@ class Player(object):
             # if self.t_hor > 1 or self.t_vert > 1:
             #     self.download_queue.put((1, s_id, 1, 1))
             d = 2
-            for t_id in order[::-1]:
+            for t_id in order: #[::-1]:
                 quality = qualities[t_id - 2]
                 self.download_queue.put((d, s_id, t_id, quality))
                 d += 1
