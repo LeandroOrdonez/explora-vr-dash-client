@@ -205,6 +205,9 @@ class Player(object):
             url = self._generate_url(s_id, t_id, quality, tup[0] == 2) # tup[0] == 2 corresponds to the center tile
             print(url)
             (resp_headers, content) = h.request(url, "GET")
+            if 'x-quality-upgrade' in resp_headers:
+                if resp_headers['x-quality-upgrade'] == 'true':
+                    self.qualities[t_id - 2] = self.qualities[t_id - 2] + 1
 
             # End task
             self.download_queue.task_done()
