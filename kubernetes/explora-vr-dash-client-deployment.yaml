@@ -45,6 +45,8 @@ spec:
           capabilities:
             add:
               - NET_ADMIN
+      nodeSelector:
+        explora-env: test
       restartPolicy: Always
       imagePullSecrets:
         - name: regcred    
