@@ -37,6 +37,7 @@ seg_dur = 1.065                 # Segment duration [s]
 LOG_PATH = f'./logs/logs_pred_model/k{K}/fold{FOLD}' if not args['perfect_prediction'] else f'./logs/logs_perfect_pred/k{K}/fold{FOLD}'
 LOG_SEGMENT = f'log_seg_u{u_id}_prefetch.txt' if args['prefetch'] else f'log_seg_u{u_id}_no_prefetch.txt'
 LOG_SEG_QUALITY = f'log_seg_quality_u{u_id}_prefetch.txt' if args['prefetch'] else f'log_seg_quality_u{u_id}_no_prefetch.txt'
+LOG_SEG_FREEZES = f'log_seg_freezes_u{u_id}_prefetch.txt' if args['prefetch'] else f'log_seg_freezes_u{u_id}_no_prefetch.txt'
 
 # Player properties
 buffer_size = 2.130     # Buffer size [s]
@@ -51,7 +52,7 @@ query_string = f'k={K}&fold={FOLD}&prefetch={args["prefetch"]}&perfect_predictio
 # Configurations
 rah = 2                 # 0: UVP, 1: UVQ, 2: CTF, 3: Petrangeli, 4: Hosseini
 reorder = 0             # 0: no reassignment, 1: reassignment
-predict = 2             # 0: last known, 1: spherical walk, 2: perfect
+predict = 1             # 0: last known, 1: spherical walk, 2: perfect
 n_conn = 1              # Number of parallel TCP connections
 
 # Read file sizes for the given video and tiling scheme
@@ -76,7 +77,7 @@ else:
 
 # Initiate video player
 p = player.Player(host, port, query_string, buffer_size, seg_dur, v_id, n_seg, t_hor, t_vert,
-                  file_sizes, rate_adapter, reorder, predict, n_conn, trace)
+                  file_sizes, rate_adapter, reorder, predict, n_conn, trace, args['prefetch'])
 
 # Run the video session
 p.run()
@@ -87,3 +88,6 @@ with open(f'{LOG_PATH}/{v_id}/{LOG_SEGMENT}', 'w') as log_s:
 with open(f'{LOG_PATH}/{v_id}/{LOG_SEG_QUALITY}', 'w') as log_s:
     for q_log in p.quality_log:
         log_s.write(f'{q_log}\n')
+        
+with open(f'{LOG_PATH}/{v_id}/{LOG_SEG_FREEZES}', 'w') as log_s:
+    log_s.write(f'{p.freeze_freq}, {p.freeze_dur}\n')
