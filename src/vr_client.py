@@ -82,8 +82,8 @@ p = player.Player(host, port, query_string, buffer_size, seg_dur, v_id, n_seg, t
 # Run the video session
 p.run()
 with open(f'{LOG_PATH}/{v_id}/{LOG_SEGMENT}', 'w') as log_s:
-    for t in p.download_times:
-        log_s.write(f'{t}\n')
+    for t, bw in zip(p.download_times, p.bandwidth_log):
+        log_s.write(f'{t}, {bw}\n')
 
 with open(f'{LOG_PATH}/{v_id}/{LOG_SEG_QUALITY}', 'w') as log_s:
     for q_log in p.quality_log:

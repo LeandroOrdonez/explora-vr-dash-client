@@ -86,6 +86,7 @@ class Player(object):
         self.freeze_dur = 0
         self.download_times = []
         self.quality_log = []
+        self.bandwidth_log = []
 
     def _play(self):
         """Simulates playout of video content
@@ -433,6 +434,7 @@ class Player(object):
             bandwidth = bits / time_passed
             print(bandwidth / 1000000, time_passed)
             self.download_times.append(time_passed)
+            self.bandwidth_log.append(bandwidth)
 
             # Push segment to playout queue
             self.seg_queue.put(self.qualities[:])
