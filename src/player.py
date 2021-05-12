@@ -20,9 +20,9 @@ class Player(object):
         Run the VR player
     """
 
-    def __init__(self, host, port, query_string, buffer_size, seg_dur, v_id, n_seg, t_hor,
-                 t_vert, file_sizes, rate_adapter, reassignment, predict,
-                 n_conn, trace, prefetch_enabled):
+    def __init__(self, host, port, query_string, buffer_size, seg_dur, v_id, u_id, 
+                 n_seg, t_hor, t_vert, file_sizes, rate_adapter, reassignment, 
+                 predict, n_conn, trace, prefetch_enabled):
         """
         Parameters
         ----------
@@ -38,6 +38,8 @@ class Player(object):
             Segment duration [s]
         v_id : int
             The video's ID in Wu's dataset (0-8)
+        u_id : int
+            The user's ID in Wu's dataset (1-48)
         n_seg : int
             Number of video segments
         t_hor, t_vert : int, int
@@ -64,6 +66,7 @@ class Player(object):
         self.buffer_size = buffer_size
         self.seg_dur = seg_dur
         self.v_id = v_id
+        self.u_id = u_id
         self.n_seg = n_seg
         self.t_hor = t_hor
         self.t_vert = t_vert

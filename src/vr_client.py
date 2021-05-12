@@ -76,7 +76,7 @@ else:
     rate_adapter = ra.Hosseini(buffer_size, seg_dur, t_hor, t_vert, n_qual)
 
 # Initiate video player
-p = player.Player(host, port, query_string, buffer_size, seg_dur, v_id, n_seg, t_hor, t_vert,
+p = player.Player(host, port, query_string, buffer_size, seg_dur, v_id, u_id, n_seg, t_hor, t_vert,
                   file_sizes, rate_adapter, reorder, predict, n_conn, trace, args['prefetch'])
 
 # Run the video session
