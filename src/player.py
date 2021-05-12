@@ -294,6 +294,7 @@ class Player(object):
                 headers={'Content-Type': 'application/json'},
                 body=json.dumps({
                     's_id': s_id,
+                    'u_id': self.u_id,
                     'qualities': qualities,
                     'order': order
                 })

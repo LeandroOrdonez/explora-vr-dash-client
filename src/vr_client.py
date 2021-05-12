@@ -46,7 +46,7 @@ vp_deg = 110            # Viewport size [deg]
 # Server properties
 host = os.getenv("CACHE_HOST") if args['prefetch'] else os.getenv("SERVER_HOST")             # Host IP
 port = os.getenv("CACHE_PORT") if args['prefetch'] else os.getenv("SERVER_PORT")             # Host port
-query_string = f'k={K}&fold={FOLD}&prefetch={args["prefetch"]}&perfect_prediction={args["perfect_prediction"]}&user_id={u_id}' if args['perfect_prediction'] else f'k={K}&fold={FOLD}&prefetch={args["prefetch"]}&perfect_prediction={args["perfect_prediction"]}'
+query_string = f'k={K}&fold={FOLD}&prefetch={args["prefetch"]}&perfect_prediction={args["perfect_prediction"]}&user_id={u_id}'
 
 
 # Configurations
