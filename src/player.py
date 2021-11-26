@@ -3,6 +3,7 @@ import numpy as np
 import queue
 import time
 import threading
+import json
 
 import help_functions as hf
 
@@ -19,9 +20,9 @@ class Player(object):
         Run the VR player
     """
 
-    def __init__(self, host, port, query_string, buffer_size, seg_dur, v_id, n_seg, t_hor,
-                 t_vert, file_sizes, rate_adapter, reassignment, predict,
-                 n_conn, trace):
+    def __init__(self, host, port, query_string, buffer_size, seg_dur, v_id, u_id, 
+                 n_seg, t_hor, t_vert, file_sizes, rate_adapter, reassignment, 
+                 predict, n_conn, trace, prefetch_enabled):
         """
         Parameters
         ----------
@@ -37,6 +38,8 @@ class Player(object):
             Segment duration [s]
         v_id : int
             The video's ID in Wu's dataset (0-8)
+        u_id : int
+            The user's ID in Wu's dataset (1-48)
         n_seg : int
             Number of video segments
         t_hor, t_vert : int, int
@@ -53,6 +56,8 @@ class Player(object):
             Number of parallel TCP connections
         trace : list
             A list of tuples, containing a timestamp, phi and theta
+        prefetch_enabled : bool
+            Whether prefetch is enabled or not 
         """
 
         self.host = host
@@ -61,6 +66,7 @@ class Player(object):
         self.buffer_size = buffer_size
         self.seg_dur = seg_dur
         self.v_id = v_id
+        self.u_id = u_id
         self.n_seg = n_seg
         self.t_hor = t_hor
         self.t_vert = t_vert
@@ -74,13 +80,16 @@ class Player(object):
         self.download_queue = DownloadQueue()
         self.seg_queue = queue.Queue()
         self.play_queue = queue.Queue()
+        self.prefetch_queue = queue.Queue()
         self.time_start_playing = -1
         self.iterator = 0
 
+        self.prefetch_enabled = prefetch_enabled
         self.freeze_freq = 0
         self.freeze_dur = 0
         self.download_times = []
         self.quality_log = []
+        self.bandwidth_log = []
 
     def _play(self):
         """Simulates playout of video content
@@ -257,6 +266,43 @@ class Player(object):
 
         return "%s/%s/%s" % (h, d, f)
 
+    def _do_prefetch(self):
+        """Initiates a new HTTP connection and triggers prefetching
+
+        """
+
+        # Initiate new HTTP connection
+        http_obj = httplib2.Http()
+
+        while True:
+            # Retrieve tuple containing segment number, tile number and quality
+            s_id, qualities, order = self.prefetch_queue.get()
+
+            # If segment number smaller than 0: stop running
+            if s_id < 0:
+                self.prefetch_queue.task_done()
+                return
+
+            # Generate URL and send the request
+            h = "http://%s:%s" % (self.host, self.port)
+            d = "prefetch/%s/%sx%s" % (self.v_id, self.t_hor, self.t_vert)
+            url = "%s/%s" % (h, d)
+#             print(url)
+            (resp_headers, content) = http_obj.request(
+                uri=url, 
+                method="POST",
+                headers={'Content-Type': 'application/json'},
+                body=json.dumps({
+                    's_id': s_id,
+                    'u_id': self.u_id,
+                    'qualities': qualities,
+                    'order': order
+                })
+            )
+            
+            # End task
+            self.prefetch_queue.task_done()
+
     def _buffer(self):
         """Buffers VR content
 
@@ -268,9 +314,11 @@ class Player(object):
 
         # Start workers
         for _ in range(self.n_conn):
-            t = threading.Thread(target=self._do_work)
-            t.daemon = True
-            t.start()
+            if self.prefetch_enabled:
+                t2 = threading.Thread(target=self._do_prefetch, daemon=True)
+                t2.start()
+            t1 = threading.Thread(target=self._do_work, daemon=True)
+            t1.start()
 
         # Loop over all segments, in order
         for s_id in range(1, self.n_seg + 1):
@@ -316,6 +364,9 @@ class Player(object):
                                                        budget_bits,
                                                        self.qualities, phi_3,
                                                        theta_3, phi_2, theta_2)
+
+            if self.prefetch_enabled:
+                self.prefetch_queue.put((s_id, qualities, order))
 
             print(qualities)
 
@@ -370,6 +421,8 @@ class Player(object):
 
             # Wait until all tiles are downloaded
             self.download_queue.join()
+            if self.prefetch_enabled:
+                self.prefetch_queue.join()
 
             print(self.qualities)
             self.quality_log.append(self.qualities)
@@ -385,6 +438,7 @@ class Player(object):
             bandwidth = bits / time_passed
             print(bandwidth / 1000000, time_passed)
             self.download_times.append(time_passed)
+            self.bandwidth_log.append(bandwidth)
 
             # Push segment to playout queue
             self.seg_queue.put(self.qualities[:])
@@ -415,6 +469,8 @@ class Player(object):
         # Terminate workers
         for _ in range(self.n_conn):
             self.download_queue.put((0, -1, 0, 0))
+            if self.prefetch_enabled:
+                self.prefetch_queue.put((-1, [0], [0]))
 
     def run(self):
         """Run the VR player
