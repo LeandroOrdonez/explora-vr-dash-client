@@ -82,6 +82,7 @@ class Player(object):
         self.play_queue = queue.Queue()
         self.prefetch_queue = queue.Queue()
         self.time_start_playing = -1
+        self.time_start_buffering = -1
         self.iterator = 0
 
         self.prefetch_enabled = prefetch_enabled
@@ -110,6 +111,9 @@ class Player(object):
             time_curr = time.time()
             if n_played == 0:
                 self.time_start_playing = time_curr
+                if self.time_start_buffering > 0:
+                    self.startup_delay = self.time_start_playing - self.time_start_buffering
+                    # print(f'Startup delay: {self.startup_delay}')
 
             # Update freeze statistics
             if freezing:
@@ -372,6 +376,9 @@ class Player(object):
 
             # Time before downloading current segment
             time_start = time.time()
+            if self.time_start_buffering < 0:
+                self.time_start_buffering = time_start
+                # print(f'Start buffering: {time_start}')
 
             # Send required resources to download queue
             # if self.t_hor > 1 or self.t_vert > 1:
