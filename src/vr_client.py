@@ -38,7 +38,7 @@ LOG_PATH = f'./logs/logs_pred_model/k{K}/fold{FOLD}' if not args['perfect_predic
 LOG_SEGMENT = f'log_seg_u{u_id}_prefetch.txt' if args['prefetch'] else f'log_seg_u{u_id}_no_prefetch.txt'
 LOG_SEG_QUALITY = f'log_seg_quality_u{u_id}_prefetch.txt' if args['prefetch'] else f'log_seg_quality_u{u_id}_no_prefetch.txt'
 LOG_SEG_FREEZES = f'log_seg_freezes_u{u_id}_prefetch.txt' if args['prefetch'] else f'log_seg_freezes_u{u_id}_no_prefetch.txt'
-LOG_STARTUP_DELAY = f'log_startup_delay_prefetch.txt' if args['prefetch'] else f'log_startup_delay_no_prefetch.txt'
+LOG_STARTUP_DELAY = f'log_startup_delay_u{u_id}_prefetch.txt' if args['prefetch'] else f'log_startup_delay_u{u_id}_no_prefetch.txt'
 
 # Player properties
 buffer_size = 2.130     # Buffer size [s]
@@ -93,5 +93,5 @@ with open(f'{LOG_PATH}/{v_id}/{LOG_SEG_QUALITY}', 'w') as log_s:
 with open(f'{LOG_PATH}/{v_id}/{LOG_SEG_FREEZES}', 'w') as log_s:
     log_s.write(f'{p.freeze_freq}, {p.freeze_dur}\n')
 
-with open(f'{LOG_PATH}/{v_id}/{LOG_STARTUP_DELAY}', 'a') as log_s:
+with open(f'{LOG_PATH}/{v_id}/{LOG_STARTUP_DELAY}', 'w') as log_s:
     log_s.write(f'{p.startup_delay}\n')
